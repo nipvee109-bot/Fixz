@@ -31,6 +31,7 @@ export default async function OrdersPage() {
       luckyBox: { select: { name: true, thumbnail: true } },
     },
     orderBy: { createdAt: 'desc' },
+    take: 100,
   });
 
   const getStatusBadge = (status: string) => {

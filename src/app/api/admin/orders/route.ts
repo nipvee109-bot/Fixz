@@ -36,7 +36,7 @@ export async function GET(req: Request) {
         product: { select: { id: true, title: true, price: true } },
         luckyBox: { select: { id: true, name: true, price: true } },
         coupon: { select: { code: true } },
-        stockItem: true,
+        stockItem: { select: { id: true, isSold: true, soldAt: true } },
       },
       orderBy: { createdAt: 'desc' },
       take: 50,

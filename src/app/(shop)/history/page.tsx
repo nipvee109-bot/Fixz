@@ -29,6 +29,7 @@ export default async function HistoryPage() {
       stockItem: true,
     },
     orderBy: { createdAt: 'desc' },
+    take: 100,
   });
 
   return (

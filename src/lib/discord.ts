@@ -23,7 +23,6 @@ export async function sendDiscordEmbed({ type, data }: DiscordEmbedPayload): Pro
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
   if (!webhookUrl) {
     // Graceful degradation when webhook URL is not configured
-    console.log(`[Discord Webhook] Skipped (${type}): DISCORD_WEBHOOK_URL not configured`);
     return false;
   }
 
@@ -118,7 +117,7 @@ export async function sendDiscordEmbed({ type, data }: DiscordEmbedPayload): Pro
           ...embed,
           title: `📢 SYSTEM NOTIFICATION: ${type}`,
           color: COLORS.PURPLE,
-          description: JSON.stringify(data, null, 2),
+          description: 'Automated System Event',
         };
     }
 
@@ -132,17 +131,18 @@ export async function sendDiscordEmbed({ type, data }: DiscordEmbedPayload): Pro
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined,
     });
 
     if (!response.ok) {
-      const errText = await response.text().catch(() => '');
-      console.error(`[Discord Webhook] Error response (${response.status}):`, errText);
+      console.error(`[Discord Webhook] Failed with status code: ${response.status}`);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('[Discord Webhook] Failed to send webhook:', error);
+    // Non-blocking catch to ensure external network issues do not interrupt user checkout/topup
+    console.error('[Discord Webhook] Network or timeout error');
     return false;
   }
 }

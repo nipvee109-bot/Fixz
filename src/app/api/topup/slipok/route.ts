@@ -58,15 +58,25 @@ export async function POST(req: Request) {
     slipokFormData.append('files', file);
 
     const slipokUrl = `https://api.slipok.com/api/line/apikey/${branchId}`;
-    const slipokRes = await fetch(slipokUrl, {
-      method: 'POST',
-      headers: {
-        'x-authorization': apiKey,
-      },
-      body: slipokFormData,
-    });
+    let slipokRes: Response;
+    try {
+      slipokRes = await fetch(slipokUrl, {
+        method: 'POST',
+        headers: {
+          'x-authorization': apiKey,
+        },
+        body: slipokFormData,
+        signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined,
+      });
+    } catch (fetchErr: any) {
+      return NextResponse.json({
+        success: false,
+        error: 'SERVICE_UNAVAILABLE',
+        message: 'ระบบตรวจสอบสลิปขัดข้องชั่วคราวหรือใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง',
+      }, { status: 503 });
+    }
 
-    const slipokData = await slipokRes.json();
+    const slipokData = await slipokRes.json().catch(() => ({}));
 
     if (!slipokRes.ok || !slipokData.success) {
       const errMsg = slipokData.message || 'ไม่สามารถตรวจสอบสลิปได้ หรือสลิปไม่ถูกต้อง';

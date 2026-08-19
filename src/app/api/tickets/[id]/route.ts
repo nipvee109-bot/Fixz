@@ -22,6 +22,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         messages: {
           include: { sender: { select: { id: true, username: true } } },
           orderBy: { createdAt: 'asc' },
+          take: 200,
         },
       },
     });

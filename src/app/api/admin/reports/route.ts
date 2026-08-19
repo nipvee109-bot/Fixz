@@ -12,19 +12,33 @@ export async function GET() {
 
     const [orders, transactions, totalUsers, categories] = await Promise.all([
       prisma.order.findMany({
-        include: {
-          product: { include: { category: true } },
-          luckyBox: true,
-          user: { select: { username: true } },
+        select: {
+          id: true,
+          totalAmount: true,
+          status: true,
+          type: true,
+          productId: true,
+          luckyBoxId: true,
+          product: {
+            select: {
+              title: true,
+              category: { select: { name: true } },
+            },
+          },
+          luckyBox: { select: { name: true } },
         },
         orderBy: { createdAt: 'desc' },
       }),
       prisma.transaction.findMany({
         where: { status: 'SUCCESS' },
+        select: {
+          amount: true,
+          channel: true,
+        },
         orderBy: { createdAt: 'desc' },
       }),
       prisma.user.count(),
-      prisma.category.findMany(),
+      prisma.category.findMany({ select: { id: true, name: true } }),
     ]);
 
     // Financial Metrics
