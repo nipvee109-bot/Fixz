@@ -1,17 +1,21 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { Sparkles, Zap, Flame } from 'lucide-react';
+import { Sparkles, Flame } from 'lucide-react';
 import ProductCard from '@/components/shop/ProductCard';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const categories = await prisma.category.findMany();
-  const products = await prisma.product.findMany({
-    where: { isActive: true },
-    include: { category: true, stocks: { where: { isSold: false } } },
-    orderBy: { createdAt: 'desc' },
-  });
+  let products: any[] = [];
+  try {
+    products = await prisma.product.findMany({
+      where: { isActive: true },
+      include: { category: true, stocks: { where: { isSold: false } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (e) {
+    console.log('Database loading fallback:', e);
+  }
 
   return (
     <div className="min-h-screen bg-background text-gray-100 pb-20">
@@ -39,22 +43,28 @@ export default async function HomePage() {
         <h2 className="text-2xl font-bold text-white flex items-center gap-2 mb-6">
           <Flame className="w-6 h-6 text-rose-500 animate-pulse" /> สินค้าและบริการทั้งหมด
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((p) => (
-            <ProductCard
-              key={p.id}
-              product={{
-                id: p.id,
-                title: p.title,
-                price: p.price,
-                thumbnail: p.thumbnail,
-                categoryName: p.category.name,
-                type: p.type,
-                stockCount: p.stocks.length,
-              }}
-            />
-          ))}
-        </div>
+        {products.length === 0 ? (
+          <div className="p-12 text-center bg-surface-card rounded-2xl border border-surface-border text-gray-400 text-sm">
+            กำลังโหลดข้อมูลสินค้า หรือยังไม่มีสินค้าในระบบ
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={{
+                  id: p.id,
+                  title: p.title,
+                  price: p.price,
+                  thumbnail: p.thumbnail,
+                  categoryName: p.category?.name || 'ทั่วไป',
+                  type: p.type,
+                  stockCount: p.stocks ? p.stocks.length : 0,
+                }}
+              />
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
