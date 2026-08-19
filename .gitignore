@@ -4,5 +4,8 @@ out
 .env
 .env.local
 *.db
+!prisma/dev.db
 *.db-journal
+*.db-wal
+*.db-shm
 tsconfig.tsbuildinfo
