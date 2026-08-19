@@ -5,3 +5,4 @@ out
 .env.local
 *.db
 *.db-journal
+tsconfig.tsbuildinfo
