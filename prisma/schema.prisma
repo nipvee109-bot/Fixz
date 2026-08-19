@@ -1,0 +1,87 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id @default(cuid())
+  username     String        @unique
+  email        String?       @unique
+  passwordHash String
+  balance      Float         @default(0.0)
+  points       Int           @default(0)
+  role         String        @default("USER")
+  orders       Order[]
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  iconUrl     String?
+  bannerUrl   String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  categoryId  String
+  category    Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  price       Float
+  thumbnail   String
+  type        String      @default("ACCOUNT_PURCHASE")
+  stocks      StockItem[]
+  orders      Order[]
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+}
+
+model StockItem {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  accountData String
+  isSold      Boolean   @default(false)
+  soldAt      DateTime?
+  orderId     String?   @unique
+  order       Order?    @relation(fields: [orderId], references: [id])
+  createdAt   DateTime  @default(now())
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  productId     String?
+  product       Product?    @relation(fields: [productId], references: [id])
+  type          String
+  status        String      @default("PENDING")
+  totalAmount   Float
+  stockItem     StockItem?
+  customerInput String?
+  adminNote     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  amount      Float
+  channel     String
+  referenceNo String?  @unique
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+}
